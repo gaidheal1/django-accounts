@@ -28,7 +28,10 @@ SECRET_KEY = 'django-insecure-79sbcj4n4ucmhrz)wdyxig^f@%(ftut-0cj+i3)8dw@6c%xzup
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'https://djangoaccounts-2580df1aee7d.herokuapp.com/',
+    'localhost'
+]
 
 
 # Application definition
@@ -60,7 +63,9 @@ ROOT_URLCONF = 'djangoaccounts.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -80,11 +85,13 @@ WSGI_APPLICATION = 'djangoaccounts.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default': 
-    {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    # 'default': 
+    # {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+        
+    # }
+    'default': dj_database_url.config(default='postgres://localhost:5432')
 }
 
 
@@ -132,5 +139,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 django_heroku.settings(locals())
 
-LOGIN_REDIRECT_URL = 'profile'
-LOGOUT_REDIRECT_URL = 'login'
+# MEDIA_URL is the URL to use for serving files
+MEDIA_URL = '/media/'
+
+# MEDIA_ROOT is the absolute file system path to the directory where files will be stored
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
