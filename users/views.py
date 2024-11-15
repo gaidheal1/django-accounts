@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect
-from .forms import ProfileForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth import login, logout
-from .models import Profile
+from django.contrib.auth import login, logout, authenticate
+from .models import Profile, Activity
+from .forms import ProfileForm, ActivityForm
 
 
 def index(request):
@@ -24,14 +24,16 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
 
-@login_required
-def dashboard(request):
-    return render(request, 'dashboard.html')
 
 # Logout view
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+@login_required
+def dashboard(request):
+    activities = Activity.objects.filter(user=request.user)
+    return render(request, 'dashboard.html', {'activities': activities})
 
 def register(request):
     if request.method == 'POST':
@@ -61,3 +63,19 @@ def edit_profile(request):
     else:
         form = ProfileForm(instance=profile)
     return render(request, 'edit_profile.html', {'form': form})
+
+@login_required
+def add_activity(request):
+    if request.method == 'POST':
+        form = ActivityForm(request.POST)
+        if form.is_valid():
+            activity = form.save(commit=False)
+            activity.user = request.user
+            activity.save()
+            messages.success(request, 'Your activity has been successfully added!')
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'There was an error adding your activity. Please try again.')
+    else:
+        form = ActivityForm()
+    return render(request, 'add_activity.html', {'form': form})

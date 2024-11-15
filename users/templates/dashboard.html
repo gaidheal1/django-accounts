@@ -1,21 +1,26 @@
-<!-- users/templates/profile.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-</head>
-<body>
+{% extends "base_generic.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
     <h2>Dashboard</h2>
-    <p>Welcome</p>
-
     
+    <p>List of activities:</p>
+    <div id="activities">
+        <ul>
+            {% for activity in activities %}
+            <li>{{ activity.name }} - {{ activity.duration }} minutes</li>
+            {% empty %}
+            <li>No activities added yet.</li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'add_activity' %}">Add Activity</a>
+    </div>  
+    <p>
+        <a href="{% url 'logout' %}">Log out</a>
+    </p>
 
-<p>
-    <a href="{% url 'logout' %}">Log out</a>
-</p>
-</body>
-</html>
 
 
+{% endblock %}

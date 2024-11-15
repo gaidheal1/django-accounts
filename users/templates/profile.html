@@ -1,12 +1,8 @@
-<!-- users/templates/profile.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
-</head>
-<body>
+{% extends "base_generic.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
     <h2>Profile</h2>
     <p>Welcome, {{  profile.user.username }}!</p>
 
@@ -19,6 +15,9 @@
     {% endif %}
     <br>
     <div>
+        <div>
+            <a href="{% url 'dashboard' %}">Go to dashboard</a>
+        </div>
         <div>
             <a href="{% url 'edit_profile' %}">Edit Profile</a>
         </div>
@@ -35,7 +34,5 @@
             </p>
         </div>
     </div>  
-</body>
-</html>
 
-
+{% endblock %}
