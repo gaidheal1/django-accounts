@@ -8,15 +8,61 @@
     
     <p>List of activities:</p>
     <div id="activities">
+        
+         <!-- Tabs for Daily, Weekly, Monthly -->
+        <div class="tabs">
+            <a href="?filter=daily" class="{% if filter_by == 'daily' %}active{% endif %}">Daily</a>
+            <a href="?filter=weekly" class="{% if filter_by == 'weekly' %}active{% endif %}">Weekly</a>
+            <a href="?filter=monthly" class="{% if filter_by == 'monthly' %}active{% endif %}">Monthly</a>
+        </div>
+
+        <!-- Activities list -->
         <ul>
-            {% for activity in activities %}
-            <li>{{ activity.name }} - {{ activity.duration }} minutes</li>
+            {% for activity in page_obj %}
+            <li>{{ activity.name }} - {{ activity.created }}
+              {% if activity.skill %} (Skill: {{activity.skill.name}}) {% endif %}
+            </li>
             {% empty %}
-            <li>No activities added yet.</li>
+            <p>No activities found for this period.</p>
             {% endfor %}
         </ul>
+
+        <!-- Pagination controls -->
+        <div class="pagination">
+            <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?filter={{ filter_by }}&page=1">&laquo; first</a>
+                <a href="?filter={{ filter_by }}&page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?filter={{ filter_by }}&page={{ page_obj.next_page_number }}">next</a>
+                <a href="?filter={{ filter_by }}&page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
+            </span>
+        </div>
+
         <a href="{% url 'add_activity' %}">Add Activity</a>
     </div>  
+    <h2>Skills</h2>
+    <ul>
+        {% for skill in skills %}
+          <li>
+            <h3>{{ skill.name }} (Total Time: {{ skill.total_time }} minutes)</h3>
+            <ul>
+              {% for activity in skill.activity_set.all %}
+                <li>{{ activity.name }} - {{ activity.time }} minutes</li>
+              {% empty %}
+                <p>No activities found for this skill.</p>
+              {% endfor %}
+            </ul>
+          </li>
+        {% endfor %}
+      </ul>
     <p>
         <a href="{% url 'logout' %}">Log out</a>
     </p>

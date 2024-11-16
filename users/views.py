@@ -1,9 +1,13 @@
+from datetime import timedelta
 from django.shortcuts import render, redirect
+from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, logout, authenticate
-from .models import Profile, Activity
+from django.http import HttpResponse
+from django.utils import timezone
+from .models import Profile, Activity, Skill
 from .forms import ProfileForm, ActivityForm
 
 
@@ -32,8 +36,33 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
-    activities = Activity.objects.filter(user=request.user)
-    return render(request, 'dashboard.html', {'activities': activities})
+    activities = Activity.objects.filter(user=request.user) #.order_by('-created') # Optional ordering instead of in model
+    skills = Skill.objects.filter(user=request.user)
+
+    # Get the filter from the request (defaults to "daily")
+    filter_by = request.GET.get('filter', 'daily')
+
+    # Apply date filters based on the selected view (daily, weekly, monthly)
+    if filter_by == 'daily':
+        today = timezone.now().date()
+        activities = activities.filter(created__date=today)
+    elif filter_by == 'weekly':
+        one_week_ago = timezone.now() - timedelta(days=7)
+        activities = activities.filter(created__gte=one_week_ago)
+    elif filter_by == 'monthly':
+        one_month_ago = timezone.now() - timedelta(days=30)
+        activities = activities.filter(created__gte=one_month_ago)
+
+    # Pagination (10 activities per page)
+    paginator = Paginator(activities, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'dashboard.html', {
+        'page_obj': page_obj,
+        'filter_by': filter_by,
+        'skills': skills,
+        })
 
 def register(request):
     if request.method == 'POST':
@@ -67,15 +96,28 @@ def edit_profile(request):
 @login_required
 def add_activity(request):
     if request.method == 'POST':
-        form = ActivityForm(request.POST)
+        form = ActivityForm(request.POST, user=request.user)
         if form.is_valid():
             activity = form.save(commit=False)
+            # if not activity.skill:
+            #     activity.skill = default_skill
             activity.user = request.user
             activity.save()
+            # form.save()
             messages.success(request, 'Your activity has been successfully added!')
             return redirect('dashboard')
         else:
             messages.error(request, 'There was an error adding your activity. Please try again.')
+            print(form.errors)
     else:
-        form = ActivityForm()
+        form = ActivityForm(user=request.user)
     return render(request, 'add_activity.html', {'form': form})
+
+@login_required
+def add_skill(request):
+    if request.method == 'POST':
+        skill_name = request.POST.get('skill_name')
+        if skill_name:
+            Skill.objects.create(name=skill_name, user=request.user)
+        return redirect('add_activity')
+    return HttpResponse("Invalid method", status=405)
