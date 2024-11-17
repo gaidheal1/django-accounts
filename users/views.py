@@ -1,5 +1,5 @@
 from datetime import timedelta
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -7,7 +7,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponse
 from django.utils import timezone
-from .models import Profile, Activity, Skill
+from .models import Profile, Activity, Skill, UserAchievement, Achievement, GlobalStats
 from .forms import ProfileForm, ActivityForm
 
 
@@ -58,10 +58,17 @@ def dashboard(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # Achievements
+    unlocked = UserAchievement.objects.filter(user=request.user)
+
+    stats = GlobalStats.objects.all()
+
     return render(request, 'dashboard.html', {
         'page_obj': page_obj,
         'filter_by': filter_by,
         'skills': skills,
+        'unlocked': unlocked,
+        'stats': stats,
         })
 
 def register(request):
@@ -99,12 +106,15 @@ def add_activity(request):
         form = ActivityForm(request.POST, user=request.user)
         if form.is_valid():
             activity = form.save(commit=False)
-            # if not activity.skill:
-            #     activity.skill = default_skill
+            
             activity.user = request.user
             activity.save()
-            # form.save()
+            
+            profile = get_object_or_404(Profile, user=request.user)
+            profile.add_xp(10*activity.time)
+
             messages.success(request, 'Your activity has been successfully added!')
+            messages.success(request, f'You got {10*activity.time} XP')
             return redirect('dashboard')
         else:
             messages.error(request, 'There was an error adding your activity. Please try again.')
@@ -121,3 +131,11 @@ def add_skill(request):
             Skill.objects.create(name=skill_name, user=request.user)
         return redirect('add_activity')
     return HttpResponse("Invalid method", status=405)
+
+@login_required
+def leaderboard(request):
+    profiles = Profile.objects.all().order_by('-level')
+    return render(request, 'leaderboard.html', {
+        'profiles': profiles,
+        'current_user': request.user,
+        })

@@ -3,17 +3,27 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-
-    <h2>Dashboard</h2>
+  <!-- stats not displaying properly yet -->
+    <h2>Game totals: total time {{stats.total_time}}, total activities {{stats.total_activities}}</h2>
+    <h2>Dashboard - {{user.username}}</h2>
     
-    <p>List of activities:</p>
+    <h3>Player details</h3>
+    <ul>
+        <li>Level: {{ user.profile.level }}</li>
+        <li>XP: {{ user.profile.xp }}/{{ user.profile.get_xp_for_next_level }}</li>
+      <li>Total time tracked: {{ user.profile.total_time }}</li>
+      <li>Total activities tracked: {{ user.profile.total_activities }}</li>
+    </ul>
+    <hr>
     <div id="activities">
-        
+        <h3>Activities</h3>
+        <a href="{% url 'add_activity' %}"><strong>Add Activity</strong></a>
+        <br><br>
          <!-- Tabs for Daily, Weekly, Monthly -->
         <div class="tabs">
-            <a href="?filter=daily" class="{% if filter_by == 'daily' %}active{% endif %}">Daily</a>
-            <a href="?filter=weekly" class="{% if filter_by == 'weekly' %}active{% endif %}">Weekly</a>
-            <a href="?filter=monthly" class="{% if filter_by == 'monthly' %}active{% endif %}">Monthly</a>
+            <a href="?filter=daily" class="{% if filter_by == 'daily' %}active{% endif %}">Today</a>
+            <a href="?filter=weekly" class="{% if filter_by == 'weekly' %}active{% endif %}">This week</a>
+            <a href="?filter=monthly" class="{% if filter_by == 'monthly' %}active{% endif %}">This month</a>
         </div>
 
         <!-- Activities list -->
@@ -45,25 +55,36 @@
             {% endif %}
             </span>
         </div>
-
-        <a href="{% url 'add_activity' %}">Add Activity</a>
     </div>  
-    <h2>Skills</h2>
-    <ul>
-        {% for skill in skills %}
-          <li>
-            <h3>{{ skill.name }} (Total Time: {{ skill.total_time }} minutes)</h3>
-            <ul>
-              {% for activity in skill.activity_set.all %}
-                <li>{{ activity.name }} - {{ activity.time }} minutes</li>
-              {% empty %}
-                <p>No activities found for this skill.</p>
-              {% endfor %}
-            </ul>
-          </li>
+    <hr>
+    <div>
+      <h3>Skills</h3>
+      <ul>
+          {% for skill in skills %}
+            <li>
+                {{ skill.name }} (Total Time: {{ skill.time }} minutes)
+            </li>
+            {% empty %}
+            <p>No skills yet.</p>
+          {% endfor %}
+        </ul>
+    </div>
+    <hr>
+    <div id="achievements">
+      <h3>Achievements unlocked</h3>
+      <ul>
+        {% for ua in unlocked %}
+        <li>
+            {{ ua.achievement.name }} - Unlocked on {{ua.unlocked_date|date:"d M Y"}}
+            <p>{{ ua.achievement.description }}</p>
+        </li>
+        {% empty %}
+        <li>No achievements unlocked yet.</li>
         {% endfor %}
       </ul>
+    </div>
     <p>
+        <a href="{% url 'leaderboard' %}">Leaderboard</a>
         <a href="{% url 'logout' %}">Log out</a>
     </p>
 

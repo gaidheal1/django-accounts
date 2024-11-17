@@ -1,0 +1,23 @@
+{% extends "base_generic.html" %}
+
+{% block title %}Leaderboard{% endblock %}
+
+{% block content %}
+    <h2>Leaderboard</h2>
+    <p>Welcome, {{ current_user.username}}!</p>
+
+    <br>
+    <div>
+        <ul style="width: 500px">
+            {% for profile in profiles %}
+
+            <li style="{% if profile.user == current_user %}background-color: lightgray; {% endif %}">
+
+            {{ profile.user }} - Level {{ profile.level }}</li>
+            {% endfor %}
+        </ul>
+
+    </div>
+    
+
+{% endblock %}
